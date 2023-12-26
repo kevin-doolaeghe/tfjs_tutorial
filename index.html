@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>TensorFlow.JS Demo</title>
+
+    <!-- This script adds the TensorFlow JS library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <!-- This script adds the MobileNet model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"></script>
+</head>
+
+<body>
+    <script src="scripts/ml.js"></script>
+    <script>
+        let predictOutput = async () => {
+            let x = document.getElementById('x').value;
+            let y = await processLinearFunction(parseInt(x));
+            document.getElementById('y').innerHTML = y;
+        }
+
+        const readImageFile = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+        };
+
+        let loadImage = async (input) => {
+            console.log(input.files);
+
+            const imageSrc = await readImageFile(input.files[0]);
+            document.getElementById('image').src = imageSrc;
+        }
+
+        let recognizeImage = async (image) => {
+            const tensorImg = tf.browser.fromPixels(image).resizeNearestNeighbor([224, 224]).toFloat().expandDims();
+            let result = await classifyImage(image);
+            let output = '';
+            result.forEach((item, index) => {
+                output += index + ': ' + item.className + ' (' + item.probability * 100 + '%) ; ';
+            });
+            document.getElementById('recognitions').innerHTML = output;
+        }
+    </script>
+
+    <h2>TFJS Demo</h2>
+
+    <h3>y=2x-1 linear function:</h3>
+    <label for="x">x =</label>
+    <input type="number" id="x" placeholder="4" value="5" />
+    <p>y = <span id="y"></span></p>
+    <button onclick="predictOutput()">Predict y</button>
+
+    <h3>Image recognition:</h3>
+    <label for="url">Image: </label>
+    <input id="url" type="file" accept="image/*" onchange="loadImage(this)" />
+
+    <p id="recognitions"></p>
+    <br />
+    <img id="image" onload="recognizeImage(this)" style="max-height: 200px;" />
+</body>
+
+</html>
